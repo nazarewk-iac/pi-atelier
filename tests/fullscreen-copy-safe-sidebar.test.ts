@@ -1,6 +1,6 @@
 import { ScrollView, TuiAltScreen } from "@earendil-works/pi-tui";
-import { DEFAULT_CONFIG } from "../src/config.js";
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_CONFIG } from "../src/config.js";
 import { createSidebarController } from "../src/sidebar.js";
 import { createSplitPaneController } from "../src/split-pane.js";
 import { stableTuiReference } from "./helpers/stable-tui-reference.js";

@@ -49,6 +49,7 @@ export const BUILTIN_SIDEBAR_PANEL_IDS = [
 	"workspace",
 	"usage",
 	"subagents",
+	"stats",
 	"tools",
 ] as const;
 

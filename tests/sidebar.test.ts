@@ -1,9 +1,6 @@
-import { disposeAfterTest } from "./helpers/cleanup.js";
-import { DEFAULT_CONFIG } from "../src/config.js";
-import { fakeTui, overlayHost } from "./helpers/overlay-host.js";
-import { settleMicrotasks } from "./helpers/async.js";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_CONFIG } from "../src/config.js";
 import { EMPTY_RUN_ACTIVITY, type RunActivitySnapshot } from "../src/run-activity.js";
 import {
 	buildSidebarSnapshot,
@@ -13,6 +10,9 @@ import {
 } from "../src/sidebar.js";
 import { DEFAULT_SIDEBAR_WIDTH } from "../src/split-pane.js";
 import { type AtelierState } from "../src/types.js";
+import { settleMicrotasks } from "./helpers/async.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
+import { fakeTui, overlayHost } from "./helpers/overlay-host.js";
 
 const stripAnsi = (text: string) => text.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
 

@@ -1,24 +1,23 @@
-import { plainTheme } from "./helpers/render.js";
-import { describe, expect, it, vi } from "vitest";
 import { initTheme } from "@earendil-works/pi-coding-agent";
+import { describe, expect, it, vi } from "vitest";
 import { SIDEBAR_PANEL_EVENT_CHANNEL } from "../extensions/index.js";
-
 import { loadConfig as loadAtelierConfig, saveUserConfigPatch as persistConfigPatch } from "../src/config.js";
 import { deferred, settleMicrotasks } from "./helpers/async.js";
 import {
-	loadTestConfig,
-	loadConfigAfter,
+	command,
+	execResult,
 	harness,
+	loadConfigAfter,
+	loadTestConfig,
+	mountComposer,
+	queueWorkspacePulseInspection,
+	renderFooter,
+	renderOverlayText,
 	replacementContext,
 	start,
 	todoBranchEntry,
-	command,
-	renderOverlayText,
-	mountComposer,
-	renderFooter,
-	queueWorkspacePulseInspection,
-	execResult,
 } from "./helpers/extension.js";
+import { plainTheme } from "./helpers/render.js";
 
 describe("extension session", () => {
 	it("moves session identity back to the footer while a selector replaces the editor", async () => {

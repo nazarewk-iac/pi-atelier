@@ -1,17 +1,23 @@
-import { plainTheme } from "./helpers/render.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
 import { deferred, settleMicrotasks } from "./helpers/async.js";
 import {
+	command,
+	execResult,
 	harness,
+	mountComposer,
+	queueWorkspacePulseInspection,
+	renderOverlayText,
 	start,
 	todoBranchEntry,
-	command,
-	renderOverlayText,
-	queueWorkspacePulseInspection,
-	execResult,
-	mountComposer,
 } from "./helpers/extension.js";
+import { plainTheme } from "./helpers/render.js";
+
+// One Workspace Pulse inspection starts with a single `jj root` probe, so counting those probes
+// counts inspections regardless of how many git/jj follow-up calls a result triggers.
+const totalExec = (h: { pi: { exec: { mock: { calls: unknown[][] } } } }): number =>
+	h.pi.exec.mock.calls.filter((c) => c[0] === "jj").length;
+const expectTotal = (h: { pi: { exec: { mock: { calls: unknown[][] } } } }, n: number): void =>
+	expect(totalExec(h)).toBe(n);
 
 describe("extension activity", () => {
 	afterEach(() => {
@@ -33,12 +39,12 @@ describe("extension activity", () => {
 		await h.dispatch("turn_end", { type: "turn_end" });
 		await vi.advanceTimersByTimeAsync(1_000);
 
-		expect(h.pi.exec).not.toHaveBeenCalled();
+		expectTotal(h, 0);
 
 		h.ctx.isProjectTrusted.mockReturnValue(true);
 		await h.dispatch("turn_end", { type: "turn_end" });
 
-		expect(h.pi.exec).toHaveBeenCalledOnce();
+		expectTotal(h, 1);
 	});
 
 	it("stops an in-flight Workspace Pulse inspection when project trust is revoked", async () => {
@@ -46,13 +52,13 @@ describe("extension activity", () => {
 		const h = harness();
 		queueWorkspacePulseInspection(h, discovery.promise);
 		await start(h);
-		expect(h.pi.exec).toHaveBeenCalledOnce();
+		expectTotal(h, 1);
 
 		h.ctx.isProjectTrusted.mockReturnValue(false);
 		discovery.resolve(execResult("true\n/tmp/project\n"));
 		await settleMicrotasks();
 
-		expect(h.pi.exec).toHaveBeenCalledOnce();
+		expectTotal(h, 1);
 	});
 
 	it("sends only one native notification when a turn settles", async () => {
@@ -198,13 +204,13 @@ describe("extension activity", () => {
 		const h = harness();
 		h.ctx.isProjectTrusted.mockReturnValue(true);
 		await start(h);
-		const inspectionsAfterStart = h.pi.exec.mock.calls.length;
+		const inspectionsAfterStart = totalExec(h);
 
 		await h.dispatch("turn_start", { type: "turn_start", turnIndex: 0 });
 		await vi.advanceTimersByTimeAsync(249);
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart);
+		expectTotal(h, inspectionsAfterStart);
 		await vi.advanceTimersByTimeAsync(1);
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart + 1);
+		expectTotal(h, inspectionsAfterStart + 1);
 	});
 
 	it("flushes a fresh Workspace Pulse at Turn end without leaving a scheduled duplicate", async () => {
@@ -212,14 +218,14 @@ describe("extension activity", () => {
 		const h = harness();
 		h.ctx.isProjectTrusted.mockReturnValue(true);
 		await start(h);
-		const inspectionsAfterStart = h.pi.exec.mock.calls.length;
+		const inspectionsAfterStart = totalExec(h);
 
 		await h.dispatch("turn_start", { type: "turn_start", turnIndex: 0 });
 		await h.dispatch("turn_end", { type: "turn_end" });
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart + 1);
+		expectTotal(h, inspectionsAfterStart + 1);
 
 		await vi.advanceTimersByTimeAsync(1_000);
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart + 1);
+		expectTotal(h, inspectionsAfterStart + 1);
 	});
 
 	it("coalesces rapid tool completions into one Workspace Pulse refresh", async () => {
@@ -227,7 +233,7 @@ describe("extension activity", () => {
 		const h = harness();
 		h.ctx.isProjectTrusted.mockReturnValue(true);
 		await start(h);
-		const inspectionsAfterStart = h.pi.exec.mock.calls.length;
+		const inspectionsAfterStart = totalExec(h);
 
 		for (const toolCallId of ["one", "two", "three"]) {
 			await h.dispatch("tool_execution_end", {
@@ -240,9 +246,9 @@ describe("extension activity", () => {
 		}
 
 		await vi.advanceTimersByTimeAsync(249);
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart);
+		expectTotal(h, inspectionsAfterStart);
 		await vi.advanceTimersByTimeAsync(1);
-		expect(h.pi.exec).toHaveBeenCalledTimes(inspectionsAfterStart + 1);
+		expectTotal(h, inspectionsAfterStart + 1);
 	});
 
 	it("updates recent tool results and settles the sidebar without continuing animation", async () => {

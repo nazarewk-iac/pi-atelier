@@ -1,6 +1,4 @@
-import { disposeAfterTest } from "./helpers/cleanup.js";
 import { describe, expect, it, vi } from "vitest";
-import { eventTransport } from "./helpers/events.js";
 import {
 	createSidebarPanelRegistry,
 	isSidebarPanelContributionId,
@@ -17,6 +15,8 @@ import {
 	SIDEBAR_PANEL_MAX_TITLE_CHARS,
 	SIDEBAR_PANEL_MAX_TRACKED_SOURCES,
 } from "../src/sidebar-panels.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
+import { eventTransport } from "./helpers/events.js";
 
 // Keep ownership and revision explicit; payloads may deliberately violate the protocol.
 const registration = (source: string, revision: number, panel: unknown) => ({

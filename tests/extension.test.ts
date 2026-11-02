@@ -1,19 +1,17 @@
-import { plainTheme } from "./helpers/render.js";
 import { describe, expect, it, vi } from "vitest";
-
 import { SIDEBAR_PANEL_EVENT_CHANNEL } from "../extensions/index.js";
 import { AtelierEditor } from "../src/editor.js";
-
 import { settleMicrotasks } from "./helpers/async.js";
 import {
+	command,
 	harness,
+	mountComposer,
+	renderOverlayText,
 	replacementContext,
 	start,
-	command,
-	renderOverlayText,
-	mountComposer,
 	withPersistedUserConfig,
 } from "./helpers/extension.js";
+import { plainTheme } from "./helpers/render.js";
 
 describe("extension registration", () => {
 	it("discovers and renders a structured contributed panel through pi.events", async () => {
@@ -400,8 +398,8 @@ describe("extension registration", () => {
 				const rendered = workspace?.render(120).join("\n") ?? "";
 				expect(rendered).toContain("vendor:missing");
 
-				// Two display rows, nine segments, three actions and ten built-in panels precede the contributed one.
-				for (let index = 0; index < 14 + 11; index += 1) workspace?.handleInput("\u001b[B");
+				// Two display rows, nine segments, three actions and eleven built-in panels precede the contributed one.
+				for (let index = 0; index < 14 + 12; index += 1) workspace?.handleInput("\u001b[B");
 				const focusedRendered = workspace?.render(120).join("\n") ?? "";
 				expect(focusedRendered).toContain("Queue title");
 				expect(focusedRendered).toContain("unavailable");
@@ -429,6 +427,7 @@ describe("extension registration", () => {
 					"workspace",
 					"usage",
 					"subagents",
+					"stats",
 					"tools",
 					"vendor:queue",
 				]);

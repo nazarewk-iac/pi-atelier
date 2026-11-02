@@ -4,21 +4,22 @@ import { type Component, type OverlayHandle, truncateToWidth, visibleWidth } fro
 import { DEFAULT_CONFIG } from "./config.js";
 import { displayHomePath } from "./display-path.js";
 import { contextRole } from "./footer.js";
-import { type PrefillSnapshot, formatPrefillRows } from "./prefill.js";
 import { hasCapturingOverlay } from "./image-compositor.js";
 import { formatTokens } from "./metrics.js";
 import { type AtelierPalette, createPalette, type PaletteRole, type ThemeLike } from "./palette.js";
+import { formatPrefillRows, type PrefillSnapshot } from "./prefill.js";
 import {
 	EMPTY_RUN_ACTIVITY,
 	formatDuration,
-	responsePerformanceValues,
 	type RunActivitySnapshot,
+	responsePerformanceValues,
 	type ToolActivity,
 } from "./run-activity.js";
 import { isBuiltinSidebarPanelId, type SidebarPanelData } from "./sidebar-panels.js";
 import { createSplitPaneController, type SidebarMode, type SidebarStatus } from "./split-pane.js";
 import { createInertAtelierState } from "./state.js";
 import { type SubagentCostChartGraphics, subagentCostChart } from "./subagent-cost-chart.js";
+import { seriesAverage } from "./subagent-speed-history.js";
 import { errorMessage, fitToWidth, PLACEHOLDER, sanitizeInline } from "./text.js";
 import type {
 	AtelierConfig,
@@ -364,6 +365,28 @@ function subagentRows(
 	];
 }
 
+/**
+ * The STATS panel: per-sub-agent output speed. A closed run shows the mean tok/s over its
+ * replies; a live run shows its latest reply's tok/s. "avg" because tok/s here is a whole-reply
+ * average (prefill + queue included), not a sliding decode estimate.
+ */
+function statsRows(snapshot: SidebarSnapshot, width: number, palette: AtelierPalette): string[] {
+	const usage = snapshot.subagentUsage;
+	const series = usage?.speedHistory ?? [];
+	if (series.length === 0) return [];
+	const rows: string[] = [];
+	for (const run of series.slice(-4)) {
+		const { replies, avgTokensPerSecond } = seriesAverage(run);
+		const latest = run.points.at(-1);
+		if (replies === 0 || !latest) continue;
+		const closed = run.partial ? "…" : "";
+		const name = run.agent.length > 12 ? `${run.agent.slice(0, 11)}…` : run.agent;
+		const value = `${avgTokensPerSecond.toFixed(1)} avg · ${latest.tokensPerSecond.toFixed(1)} now · ${replies}${closed}`;
+		rows.push(labeledRow(name, value, width, palette, "output"));
+	}
+	return rows.length > 0 ? [...rows, palette.paint("dim", "avg whole-reply · now = latest reply")] : [];
+}
+
 function activeToolNameRows(
 	snapshot: SidebarSnapshot,
 	contentWidth: number,
@@ -548,6 +571,7 @@ const DROP_RANK = {
 	pulseDetails: 6,
 	toolsStatus: 10,
 	subagents: 18,
+	stats: 19,
 	usage: 20,
 	contributed: 25,
 	workspace: 30,
@@ -821,8 +845,23 @@ export function renderSidebarLines(
 					panel,
 					rows: [
 						theme.bold(valueRow(snapshot.projectName, palette, "primary")),
+						// The jj change id (when the backend is jj) is the headline; a bookmark list
+						// follows the same shape as a Git branch so the eye reads it the same way.
+						...(pulseData?.vcs === "jj" && pulseData.jjChangeId
+							? [
+									palette.paint(
+										"accent",
+										`${config.nerdFont ? BRANCH_ICON : "⎇"} ${sanitizeInline(pulseData.jjChangeId) || PLACEHOLDER}`,
+									),
+								]
+							: []),
+						...(pulseData?.vcs === "jj"
+							? (pulseData.jjBookmarks ?? [])
+									.slice(0, 3)
+									.map((mark) => palette.paint("muted", `◆ ${sanitizeInline(mark)}`))
+							: []),
 						// The branch takes the full row so long names are not cut short by a label column.
-						...(snapshot.branch
+						...(pulseData?.vcs !== "jj" && snapshot.branch
 							? [
 									palette.paint(
 										"accent",
@@ -864,6 +903,18 @@ export function renderSidebarLines(
 				dropRank: DROP_RANK.subagents,
 			},
 		],
+		stats: () => {
+			const rows = statsRows(snapshot, panelWidth, palette);
+			if (rows.length === 0) return [];
+			return [
+				{
+					name: "subagentStats",
+					panel: { id: "stats", title: "STATS", role: "chartGreen" },
+					rows,
+					dropRank: DROP_RANK.stats,
+				},
+			];
+		},
 		tools: () => {
 			const panel = { id: "tools", title: "TOOLS", role: "chartPink" } as const;
 			const showToolNames = config.showSidebarToolNames && safeWidth > COMPACT_SIDEBAR_MAX_WIDTH;

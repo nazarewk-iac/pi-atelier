@@ -7,6 +7,7 @@ import {
 	type SubagentCostSeries,
 	type SubagentCostSource,
 } from "./subagent-cost-history.js";
+import { readSubagentSpeedHistory, type SubagentSpeedSeries } from "./subagent-speed-history.js";
 import { isRecord } from "./text.js";
 
 export const SUBAGENT_METADATA_ENTRY = "pi-atelier:subagent-metadata";
@@ -48,6 +49,8 @@ export interface SubagentUsageSnapshot {
 	pending: number;
 	limited: boolean;
 	costHistory: SubagentCostSeries[];
+	/** Per-reply output-speed history (avg tok/s per reply), one series per (run, step). */
+	speedHistory: SubagentSpeedSeries[];
 	historyUnavailable: number;
 }
 export const emptySubagentUsage = (): SubagentUsageSnapshot => ({
@@ -56,6 +59,7 @@ export const emptySubagentUsage = (): SubagentUsageSnapshot => ({
 	pending: 0,
 	limited: false,
 	costHistory: [],
+	speedHistory: [],
 	historyUnavailable: 0,
 });
 const record = (value: unknown): Record<string, unknown> | undefined => (isRecord(value) ? value : undefined);
@@ -384,7 +388,8 @@ export async function readSubagentUsage(options: {
 	snapshot.runs = [...runs.values()].map(({ run }) => run);
 
 	const history = await readSubagentCostHistory(expansion.historySources, options.signal);
-	let historyUnavailable = history.unavailable;
+	const speed = await readSubagentSpeedHistory(expansion.historySources, options.signal);
+	let historyUnavailable = history.unavailable + speed.unavailable;
 	snapshot.costHistory = history.series.filter((series) => {
 		const matches = snapshot.runs.filter((run) => run.runId === series.runId && run.agent === series.agent);
 		const saved =
@@ -397,6 +402,7 @@ export async function readSubagentUsage(options: {
 		if (!consistent) historyUnavailable++;
 		return consistent;
 	});
+	snapshot.speedHistory = speed.series;
 	snapshot.historyUnavailable = historyUnavailable;
 	// Missing run IDs are not zero-cost runs. This is a reference count, not a child count.
 	snapshot.unavailable += [...expansion.runIds].filter(

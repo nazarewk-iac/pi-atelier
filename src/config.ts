@@ -21,11 +21,11 @@ import type {
 	DisplayLayerState,
 	DisplayProvenance,
 	DisplaySettings,
+	PrefillView,
 	PresetName,
 	SegmentId,
 	SegmentLayout,
 	SidebarPanelLayout,
-	PrefillView,
 } from "./types.js";
 
 export const MAX_CURRENCY_DECIMALS = 6;

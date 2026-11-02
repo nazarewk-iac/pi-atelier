@@ -1,5 +1,3 @@
-import { disposeAfterTest } from "./helpers/cleanup.js";
-import { deferred, settleMicrotasks } from "./helpers/async.js";
 import { getEventListeners } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,6 +8,8 @@ import {
 	inspectWorkspacePulse,
 	type WorkspacePulseInspection,
 } from "../src/workspace-pulse.js";
+import { deferred, settleMicrotasks } from "./helpers/async.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
 import { execResult as result } from "./helpers/extension.js";
 
 afterEach(() => {

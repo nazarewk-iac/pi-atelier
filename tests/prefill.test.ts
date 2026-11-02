@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+	createPrefillThrottle,
+	createPrefillTracker,
+	formatPrefillRows,
 	type PrefillModel,
 	type PrefillRow,
 	type PrefillSnapshot,
 	type PrefillView,
-	createPrefillThrottle,
-	createPrefillTracker,
-	formatPrefillRows,
 } from "../src/prefill.js";
 
 const progress = (total: number, cache: number, processed: number, timeMs: number) => ({

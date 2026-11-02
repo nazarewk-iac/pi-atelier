@@ -1,7 +1,7 @@
 import {
-	getSettingsListTheme,
 	type ExtensionAPI,
 	type ExtensionContext,
+	getSettingsListTheme,
 } from "@earendil-works/pi-coding-agent";
 import {
 	Container,
@@ -13,7 +13,7 @@ import {
 	truncateToWidth,
 } from "@earendil-works/pi-tui";
 import { saveUserConfigPatch } from "./config.js";
-import { isLifetimeActive, openLifecycleOverlay, type OverlayLifetime } from "./overlay-lifecycle.js";
+import { isLifetimeActive, type OverlayLifetime, openLifecycleOverlay } from "./overlay-lifecycle.js";
 import type { ThemeLike } from "./palette.js";
 import {
 	createSettingsWorkspace,

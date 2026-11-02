@@ -1,11 +1,10 @@
-import { plainTheme as theme } from "./helpers/render.js";
-import { settleMicrotasks } from "./helpers/async.js";
-import { requiredRow, requiredIndex } from "./helpers/render.js";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { describe, expect, it, vi } from "vitest";
-import { resolveDisplayLayers, DEFAULT_CONFIG } from "../src/config.js";
+import { DEFAULT_CONFIG, resolveDisplayLayers } from "../src/config.js";
 import { createSettingsWorkspace } from "../src/settings-workspace.js";
 import { type AtelierConfig, type DisplayLayerState, type DisplayPatch } from "../src/types.js";
+import { settleMicrotasks } from "./helpers/async.js";
+import { requiredIndex, requiredRow, plainTheme as theme } from "./helpers/render.js";
 
 function harness(
 	initialLayers: DisplayLayerState = {},

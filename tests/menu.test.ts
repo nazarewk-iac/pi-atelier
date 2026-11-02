@@ -1,6 +1,6 @@
-import { deferred } from "./helpers/async.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveDisplayLayers, DEFAULT_CONFIG } from "../src/config.js";
+import { DEFAULT_CONFIG, resolveDisplayLayers } from "../src/config.js";
+import { deferred } from "./helpers/async.js";
 
 const rootMenuItems = vi.hoisted(() => [] as Array<Array<Record<string, unknown>>>);
 vi.mock("@earendil-works/pi-tui", async (importOriginal) => {

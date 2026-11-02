@@ -1,14 +1,14 @@
-import { fakeTui, overlayHost } from "./overlay-host.js";
-import { eventTransport } from "./events.js";
-import { deferred, settleMicrotasks } from "./async.js";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { vi, onTestFinished } from "vitest";
 import { type ExtensionEvent } from "@earendil-works/pi-coding-agent";
+import { onTestFinished, vi } from "vitest";
 import atelierExtension, { type AtelierExtensionDependencies } from "../../extensions/index.js";
-import { AtelierEditor } from "../../src/editor.js";
 import { loadConfig as loadAtelierConfig, resolveConfig } from "../../src/config.js";
+import { AtelierEditor } from "../../src/editor.js";
+import { deferred, settleMicrotasks } from "./async.js";
+import { eventTransport } from "./events.js";
+import { fakeTui, overlayHost } from "./overlay-host.js";
 import { plainTheme, stripAnsi } from "./render.js";
 
 let persistedConfig = false;
@@ -62,7 +62,15 @@ export function harness(
 			shortcuts.push(key);
 			shortcutHandlers.set(key, options.handler);
 		}),
-		exec: vi.fn().mockResolvedValue({ stdout: "", stderr: "", code: 0, killed: false }),
+		exec: vi.fn((command: string) =>
+			// The jj probe runs first; answer "no jj repo" so the default path is the git inspector,
+			// which the existing Workspace Pulse tests were written against.
+			Promise.resolve(
+				command === "jj"
+					? { stdout: "", stderr: "Error: There is no jj repo in .", code: 1, killed: false }
+					: { stdout: "", stderr: "", code: 0, killed: false },
+			),
+		),
 		getThinkingLevel: vi.fn().mockReturnValue("medium"),
 		getActiveTools: vi.fn().mockReturnValue(["read"]),
 		getAllTools: vi.fn().mockReturnValue([{ name: "read" }]),
@@ -242,7 +250,9 @@ export function queueWorkspacePulseInspection(
 		Promise.resolve(execResult("treeish\n")),
 		Promise.resolve(execResult("5\t2\ttracked.txt\0")),
 	];
-	h.pi.exec.mockImplementation(() => {
+	h.pi.exec.mockImplementation((command: string) => {
+		// The jj probe answers "no repo" first, so the queued Git answers below line up exactly.
+		if (command === "jj") return Promise.resolve(execResult("", 1, "There is no jj repo in ."));
 		const result = results.shift();
 		if (results.length === 0) inspected.resolve();
 		return result ?? Promise.resolve(execResult("", 1));

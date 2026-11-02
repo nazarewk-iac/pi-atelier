@@ -1,4 +1,3 @@
-import { disposeAfterTest } from "./helpers/cleanup.js";
 import type { TUI } from "@earendil-works/pi-tui";
 import { TuiMainScreen as PiTuiMainScreen, TuiAltScreen } from "@earendil-works/pi-tui";
 import { describe, expect, it, vi } from "vitest";
@@ -10,6 +9,7 @@ import {
 	MIN_SIDEBAR_WIDTH,
 	parseSgrMouseEvent,
 } from "../src/split-pane.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
 import { stableTuiReference } from "./helpers/stable-tui-reference.js";
 
 function harness(columns = 120) {

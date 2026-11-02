@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import {
-	createCompletionNotifier,
 	type CompletionNotification,
+	createCompletionNotifier,
 	type NotificationProcess,
 	type SpawnNotificationProcess,
 } from "../src/completion-notifier.js";

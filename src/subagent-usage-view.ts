@@ -1,6 +1,6 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { openLifecycleOverlay, type OverlayLifetime } from "./overlay-lifecycle.js";
+import { type OverlayLifetime, openLifecycleOverlay } from "./overlay-lifecycle.js";
 import { createPalette } from "./palette.js";
 import { costLegendColumns, subagentCostChart } from "./subagent-cost-chart.js";
 import type { SubagentUsageSnapshot } from "./subagent-usage.js";

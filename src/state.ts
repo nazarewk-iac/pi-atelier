@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExecOptions, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { selectWorkingPhrase } from "./activity.js";
 import { resolveDisplayLayers } from "./config.js";
 import { cloneLayout } from "./display.js";
@@ -8,8 +8,8 @@ import {
 	emptySubagentUsage,
 	isSubagentUsageEventForSession,
 	readSubagentUsage,
-	subagentMetadataReferences,
 	SUBAGENT_METADATA_ENTRY,
+	subagentMetadataReferences,
 } from "./subagent-usage.js";
 import type {
 	ActivityState,
@@ -21,6 +21,7 @@ import type {
 	DisplaySettings,
 	SessionDisplayOverride,
 } from "./types.js";
+import { inspectJjWorkspacePulse } from "./workspace-pulse.jj.js";
 import {
 	createWorkspacePulseRefresh,
 	inspectWorkspacePulse,
@@ -98,14 +99,13 @@ export class AtelierRuntime {
 		this.#requestRender = dependencies.requestRender;
 		const inspectWorkspace = async (signal: AbortSignal): Promise<WorkspacePulseInspection> => {
 			if (!this.#isLiveAndTrusted()) return { kind: "unavailable" };
-			return dependencies.inspectWorkspace
-				? dependencies.inspectWorkspace(signal)
-				: inspectWorkspacePulse({
-						exec: async (command, args, options) =>
-							this.#isLiveAndTrusted() ? this.#pi.exec(command, args, options) : SKIPPED_EXEC_RESULT,
-						cwd: this.#ctx.cwd,
-						signal,
-					});
+			if (dependencies.inspectWorkspace) return dependencies.inspectWorkspace(signal);
+			const exec = async (command: string, args: string[], options?: ExecOptions) =>
+				this.#isLiveAndTrusted() ? this.#pi.exec(command, args, options) : SKIPPED_EXEC_RESULT;
+			// Prefer jj when this directory is inside a jj repo; fall back to git otherwise.
+			const jj = await inspectJjWorkspacePulse({ exec, cwd: this.#ctx.cwd, signal });
+			if (jj.kind !== "not-repo") return jj;
+			return inspectWorkspacePulse({ exec, cwd: this.#ctx.cwd, signal });
 		};
 		this.#workspacePulseRefresh = createWorkspacePulseRefresh({
 			inspect: inspectWorkspace,

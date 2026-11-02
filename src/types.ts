@@ -1,6 +1,6 @@
 import type { DENSITIES, PRODUCT_SEGMENT_ORDER, TEMPLATE_NAMES } from "./display.js";
-import type { BUILTIN_SIDEBAR_PANEL_IDS } from "./sidebar-panels.js";
 import type { PrefillView } from "./prefill.js";
+import type { BUILTIN_SIDEBAR_PANEL_IDS } from "./sidebar-panels.js";
 import type { SubagentUsageSnapshot } from "./subagent-usage.js";
 import type { WorkspacePulseData } from "./workspace-pulse.js";
 

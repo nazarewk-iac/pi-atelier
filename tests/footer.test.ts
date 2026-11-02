@@ -1,11 +1,11 @@
-import { plainTheme } from "./helpers/render.js";
-import { DEFAULT_CONFIG } from "../src/config.js";
-import { disposeAfterTest } from "./helpers/cleanup.js";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_CONFIG } from "../src/config.js";
 import { applyDisplayTemplate, legacySegmentsToLayout } from "../src/display.js";
 import { createFooterComponent, renderFooterLine } from "../src/footer.js";
 import { type AtelierConfig, type AtelierState, type FooterState } from "../src/types.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
+import { plainTheme } from "./helpers/render.js";
 
 const stripAnsi = (text: string) => text.replace(/\u001b\[[0-9;]*m/g, "");
 

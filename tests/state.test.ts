@@ -1,9 +1,9 @@
-import { disposeAfterTest } from "./helpers/cleanup.js";
-import { DEFAULT_CONFIG, resolveDisplayLayers } from "../src/config.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { selectWorkingPhrase } from "../src/activity.js";
+import { DEFAULT_CONFIG, resolveDisplayLayers } from "../src/config.js";
 import { AtelierRuntime, type RuntimeDependencies } from "../src/state.js";
 import type { DisplayLayerState } from "../src/types.js";
+import { disposeAfterTest } from "./helpers/cleanup.js";
 
 afterEach(() => {
 	vi.useRealTimers();

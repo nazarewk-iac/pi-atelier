@@ -10,7 +10,7 @@ const EMPTY_TREE_HASH = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 /** Result reported for a command skipped because inspection was cancelled. */
 export const SKIPPED_EXEC_RESULT: ExecResult = { stdout: "", stderr: "", code: 1, killed: true };
 
-interface WorkspacePulseSnapshot {
+export interface WorkspacePulseSnapshot {
 	trackedFiles: number;
 	untrackedFiles: number;
 	linesAdded: number;
@@ -23,8 +23,13 @@ interface WorkspacePulseSnapshot {
 export interface WorkspacePulseData {
 	root: string;
 	relativeCwd: string;
+	/** Which VCS produced this snapshot. Absent means "git" for backward compatibility. */
+	vcs?: "git" | "jj";
 	branch?: string;
 	snapshot: WorkspacePulseSnapshot;
+	/** jj-only extras: the current change id and the bookmarks pointing at `@`. */
+	jjChangeId?: string;
+	jjBookmarks?: string[];
 }
 
 export type WorkspacePulseInspection =

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	command,
 	harness,
+	renderOverlayText,
 	replacementContext,
 	start,
 	todoBranchEntry,
-	command,
-	renderOverlayText,
 	withPersistedUserConfig,
 } from "./helpers/extension.js";
 
