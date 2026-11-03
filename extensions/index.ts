@@ -38,6 +38,7 @@ import {
 import {
 	createSidebarPanelRegistry,
 	isBuiltinSidebarPanelId,
+	isDefaultVisiblePanelSource,
 	type SidebarPanelData,
 	type SidebarPanelRegistry,
 } from "../src/sidebar-panels.js";
@@ -411,9 +412,16 @@ export default function atelierExtension(
 					visible: entry.visible,
 				};
 			}),
+			// Trusted sources are visible by default (matching the sidebar), so the settings
+			// list must agree; other unconfigured panels stay hidden. (nix-configs fork)
 			...[...available.values()]
 				.filter((panel) => !configuredIds.has(panel.id))
-				.map((panel) => ({ id: panel.id, title: panel.title, available: true, visible: false })),
+				.map((panel) => ({
+					id: panel.id,
+					title: panel.title,
+					available: true,
+					visible: isDefaultVisiblePanelSource(panel.source),
+				})),
 		];
 	}
 

@@ -15,7 +15,7 @@ import {
 	responsePerformanceValues,
 	type ToolActivity,
 } from "./run-activity.js";
-import { isBuiltinSidebarPanelId, type SidebarPanelData } from "./sidebar-panels.js";
+import { isBuiltinSidebarPanelId, isDefaultVisiblePanelSource, type SidebarPanelData } from "./sidebar-panels.js";
 import { createSplitPaneController, type SidebarMode, type SidebarStatus } from "./split-pane.js";
 import { createInertAtelierState } from "./state.js";
 import { type SubagentCostChartGraphics, subagentCostChart } from "./subagent-cost-chart.js";
@@ -957,15 +957,8 @@ export function renderSidebarLines(
 			]
 		: [];
 	let availableVisible = false;
-	for (const entry of config.sidebarPanelLayout) {
-		if (!entry.visible) continue;
-		if (isBuiltinSidebarPanelId(entry.id)) {
-			availableVisible = true;
-			ordered.push(...builtinPanels[entry.id]());
-			continue;
-		}
-		const panel = contributed.get(entry.id);
-		if (!panel) continue;
+	const configuredIds = new Set(config.sidebarPanelLayout.map((entry) => entry.id));
+	const pushContributed = (panel: SidebarPanelData): void => {
 		availableVisible = true;
 		const rows = panel.keyValues?.length
 			? panel.keyValues.map((row) =>
@@ -988,6 +981,22 @@ export function renderSidebarLines(
 			rows: rows.length > 0 ? rows : [palette.paint("dim", "No data")],
 			dropRank: DROP_RANK.contributed,
 		});
+	};
+	for (const entry of config.sidebarPanelLayout) {
+		if (!entry.visible) continue;
+		if (isBuiltinSidebarPanelId(entry.id)) {
+			availableVisible = true;
+			ordered.push(...builtinPanels[entry.id]());
+			continue;
+		}
+		const panel = contributed.get(entry.id);
+		if (panel) pushContributed(panel);
+	}
+	// Trusted contributed panels (e.g. pi-orchestrator fleet) show by default even when the
+	// saved layout omits them. Arbitrary publishers stay hidden until enabled. (nix-configs fork)
+	for (const panel of snapshot.sidebarPanels) {
+		if (configuredIds.has(panel.id) || !isDefaultVisiblePanelSource(panel.source)) continue;
+		pushContributed(panel);
 	}
 	if (!availableVisible) {
 		ordered.push({

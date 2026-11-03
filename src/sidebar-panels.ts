@@ -10,6 +10,19 @@ import type {
 
 /** The event channel used by the public sidebar contribution protocol. */
 export const SIDEBAR_PANEL_EVENT_CHANNEL = "pi-atelier:sidebar-panels" as const;
+
+/**
+ * Panel sources shown in the sidebar even when the saved layout does not list them.
+ * A new contributed panel from one of these sources is rendered after the configured
+ * panels, so a live fleet panel needs no manual opt-in. A saved `visible: false`
+ * entry still hides it. Sources not listed here stay hidden until the user enables
+ * them, which preserves the session-isolation contract for arbitrary publishers.
+ */
+export const SIDEBAR_PANEL_DEFAULT_VISIBLE_SOURCES: readonly string[] = ["pi-orchestrator"];
+
+export function isDefaultVisiblePanelSource(source: string | undefined): boolean {
+	return source !== undefined && SIDEBAR_PANEL_DEFAULT_VISIBLE_SOURCES.includes(source);
+}
 export const SIDEBAR_PANEL_PROTOCOL_VERSION = 1 as const;
 
 /** Maximum visible characters retained for a contributed panel title. */

@@ -182,6 +182,25 @@ describe("sidebar snapshot and layout", () => {
 		expect(text).not.toContain("AGENT");
 	});
 
+	it("shows a trusted-source contributed panel by default but keeps other sources hidden", () => {
+		const lines = renderSidebarLines(
+			{
+				...snapshot(),
+				sidebarPanels: [
+					{ id: "orchestrator:fleet" as const, title: "Orchestrator Fleet", rows: [{ text: "mode · idle" }], source: "pi-orchestrator" },
+					{ id: "vendor:secret" as const, title: "Secret", rows: [{ text: "nope" }], source: "vendor" },
+				],
+			},
+			DEFAULT_CONFIG,
+			theme,
+			44,
+			60,
+		);
+		const text = contentRows(lines).join("\n");
+		expect(text).toContain("ORCHESTRATOR FLEET");
+		expect(text).not.toContain("SECRET");
+	});
+
 	it("renders an explicit empty state when every configured-visible panel is unavailable", () => {
 		const hiddenBuiltins = DEFAULT_CONFIG.sidebarPanelLayout.map((entry) => ({ ...entry, visible: false }));
 		const emptyConfig = {
